@@ -1,43 +1,50 @@
-################################################################################
-# Queue
-################################################################################
-
-output "queue_id" {
-  description = "The URL for the created Amazon SQS queue"
-  value       = try(aws_sqs_queue.this[0].id, null)
+output "gcp_project" {
+  description = "The GCP Project where all resources are deployed."
+  value       = var.gcp_project_id
 }
 
-output "queue_arn" {
-  description = "The ARN of the SQS queue"
-  value       = try(aws_sqs_queue.this[0].arn, null)
+output "gcp_region" {
+  description = "The GCP region where all resources are deployed."
+  value       = module.consul_servers.gcp_region
 }
 
-output "queue_url" {
-  description = "Same as `queue_id`: The URL for the created Amazon SQS queue"
-  value       = try(aws_sqs_queue.this[0].url, null)
+output "cluster_size" {
+  description = "The number of servers in the Consul Server cluster."
+  value       = var.consul_server_cluster_size
 }
 
-output "queue_name" {
-  description = "The name of the SQS queue"
-  value       = try(aws_sqs_queue.this[0].name, null)
+output "cluster_tag_name" {
+  description = "The tag assigned to each Consul Server node that is used to discover other Consul Server nodes."
+  value       = var.consul_server_cluster_tag_name
 }
 
-################################################################################
-# Dead Letter Queue
-################################################################################
-
-
-output "dead_letter_queue_arn" {
-  description = "The ARN of the SQS queue"
-  value       = try(aws_sqs_queue.dlq[0].arn, null)
+output "instance_group_name" {
+  description = "The name of the Managed Instance Group that contains the Consul Server cluster."
+  value       = module.consul_servers.instance_group_name
 }
 
-output "dead_letter_queue_url" {
-  description = "Same as `dead_letter_queue_id`: The URL for the created Amazon SQS queue"
-  value       = try(aws_sqs_queue.dlq[0].url, null)
+output "instance_group_url" {
+  description = "The URL of the Managed Instance Group that contains the Consul Server cluster."
+  value       = module.consul_servers.instance_group_url
 }
 
-output "dead_letter_queue_name" {
-  description = "The name of the SQS queue"
-  value       = try(aws_sqs_queue.dlq[0].name, null)
+output "client_instance_group_name" {
+  description = "The name of the Managed Instance Group that contains the Consul Client cluster."
+  value       = module.consul_clients.instance_group_name
 }
+
+output "instance_template_metadata_fingerprint" {
+  description = "A hash computed by the unique combination of metadata associated with the Instance Template used by the Consul Server cluster."
+  value       = module.consul_servers.instance_template_metadata_fingerprint
+}
+
+output "instance_template_name" {
+  description = "The name of the Instance Template used by the Consul Server cluster."
+  value       = module.consul_servers.instance_template_name
+}
+
+output "instance_template_url" {
+  description = "The URL of the Instance Template used by the Consul Server cluster."
+  value       = module.consul_servers.instance_template_url
+}
+

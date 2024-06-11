@@ -1,249 +1,97 @@
-variable "create" {
-  description = "Whether to create SQS queue"
-  type        = bool
-  default     = true
+# ---------------------------------------------------------------------------------------------------------------------
+# REQUIRED PARAMETERS
+# These parameters must be supplied when consuming this module.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "gcp_project_id" {
+  description = "The name of the GCP Project where all resources will be launched."
+  type        = string
 }
 
-################################################################################
-# Queue
-################################################################################
-
-variable "content_based_deduplication" {
-  description = "Enables content-based deduplication for FIFO queues"
-  type        = bool
-  default     = null
+variable "gcp_region" {
+  description = "The region in which all GCP resources will be launched."
+  type        = string
 }
 
-variable "deduplication_scope" {
-  description = "Specifies whether message deduplication occurs at the message group or queue level"
+variable "consul_server_cluster_name" {
+  description = "The name of the Consul Server cluster. All resources will be namespaced by this value. E.g. consul-server-prod"
+  type        = string
+}
+
+variable "consul_client_cluster_name" {
+  description = "The name of the Consul Client example cluster. All resources will be namespaced by this value. E.g. consul-client-example"
+  type        = string
+}
+
+variable "consul_server_cluster_tag_name" {
+  description = "The tag the consul server Compute Instances will look for to automatically discover each other and form a cluster. TIP: If running more than one Consul Server cluster, each cluster should have its own unique tag name. If you're not sure what to put for this value, just use the value entered in var.cluster_name."
+  type        = string
+}
+
+variable "consul_client_cluster_tag_name" {
+  description = "A tag that will uniquely identify the Consul Clients. In this example, the Consul Server cluster uses this tag to identify the Consul Client servers that should have query permissions."
+  type        = string
+}
+
+variable "consul_server_source_image" {
+  description = "The Google Image used to launch each node in the Consul Server cluster."
+  type        = string
+}
+
+variable "consul_client_source_image" {
+  description = "The Google Image used to launch each node in the Consul Client cluster."
+  type        = string
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# These parameters have reasonable defaults.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "image_project_id" {
+  description = "The name of the GCP Project where the image is located. Useful when using a separate project for custom images. If empty, var.gcp_project_id will be used."
   type        = string
   default     = null
 }
 
-variable "delay_seconds" {
-  description = "The time in seconds that the delivery of all messages in the queue will be delayed. An integer from 0 to 900 (15 minutes)"
-  type        = number
-  default     = null
-}
-
-variable "fifo_queue" {
-  description = "Boolean designating a FIFO queue"
-  type        = bool
-  default     = false
-}
-
-variable "fifo_throughput_limit" {
-  description = "Specifies whether the FIFO queue throughput quota applies to the entire queue or per message group"
+variable "network_project_id" {
+  description = "The name of the GCP Project where the network is located. Useful when using networks shared between projects. If empty, var.gcp_project_id will be used."
   type        = string
   default     = null
 }
 
-variable "kms_data_key_reuse_period_seconds" {
-  description = "The length of time, in seconds, for which Amazon SQS can reuse a data key to encrypt or decrypt messages before calling AWS KMS again. An integer representing seconds, between 60 seconds (1 minute) and 86,400 seconds (24 hours)"
+variable "consul_server_cluster_size" {
+  description = "The number of nodes to have in the Consul Server cluster. We strongly recommended that you use either 3 or 5."
   type        = number
-  default     = null
+  default     = 3
 }
 
-variable "kms_master_key_id" {
-  description = "The ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK"
-  type        = string
-  default     = null
-}
-
-variable "max_message_size" {
-  description = "The limit of how many bytes a message can contain before Amazon SQS rejects it. An integer from 1024 bytes (1 KiB) up to 262144 bytes (256 KiB)"
+variable "consul_client_cluster_size" {
+  description = "The number of nodes to have in the Consul Client example cluster. Any number of nodes is permissible, though 3 is usually enough to test.."
   type        = number
-  default     = null
+  default     = 3
 }
 
-variable "message_retention_seconds" {
-  description = "The number of seconds Amazon SQS retains a message. Integer representing seconds, from 60 (1 minute) to 1209600 (14 days)"
-  type        = number
-  default     = null
+variable "consul_server_allowed_inbound_cidr_blocks_http_api" {
+  description = "A list of CIDR-formatted IP address ranges from which the Compute Instances will allow API connections to Consul."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
 }
 
-variable "name" {
-  description = "This is the human-readable name of the queue. If omitted, Terraform will assign a random name"
-  type        = string
-  default     = null
-}
-
-variable "use_name_prefix" {
-  description = "Determines whether `name` is used as a prefix"
-  type        = bool
-  default     = false
-}
-
-variable "receive_wait_time_seconds" {
-  description = "The time for which a ReceiveMessage call will wait for a message to arrive (long polling) before returning. An integer from 0 to 20 (seconds)"
-  type        = number
-  default     = null
-}
-
-variable "redrive_allow_policy" {
-  description = "The JSON policy to set up the Dead Letter Queue redrive permission, see AWS docs."
-  type        = any
-  default     = {}
-}
-
-variable "redrive_policy" {
-  description = "The JSON policy to set up the Dead Letter Queue, see AWS docs. Note: when specifying maxReceiveCount, you must specify it as an integer (5), and not a string (\"5\")"
-  type        = any
-  default     = {}
-}
-
-variable "sqs_managed_sse_enabled" {
-  description = "Boolean to enable server-side encryption (SSE) of message content with SQS-owned encryption keys"
-  type        = bool
-  default     = true
-}
-
-variable "visibility_timeout_seconds" {
-  description = "The visibility timeout for the queue. An integer from 0 to 43200 (12 hours)"
-  type        = number
-  default     = null
-}
-
-variable "tags" {
-  description = "A mapping of tags to assign to all resources"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Queue Policy
-################################################################################
-
-variable "create_queue_policy" {
-  description = "Whether to create SQS queue policy"
-  type        = bool
-  default     = false
-}
-
-variable "source_queue_policy_documents" {
-  description = "List of IAM policy documents that are merged together into the exported document. Statements must have unique `sid`s"
+variable "consul_server_allowed_inbound_cidr_blocks_dns" {
+  description = "A list of CIDR-formatted IP address ranges from which the Compute Instances will allow TCP DNS and UDP DNS connections to Consul."
   type        = list(string)
   default     = []
 }
 
-variable "override_queue_policy_documents" {
-  description = "List of IAM policy documents that are merged together into the exported document. In merging, statements with non-blank `sid`s will override statements with the same `sid`"
+variable "consul_client_allowed_inbound_cidr_blocks_http_api" {
+  description = "A list of CIDR-formatted IP address ranges from which the Compute Instances will allow API connections to Consul."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "consul_client_allowed_inbound_cidr_blocks_dns" {
+  description = "A list of CIDR-formatted IP address ranges from which the Compute Instances will allow TCP DNS and UDP DNS connections to Consul."
   type        = list(string)
   default     = []
-}
-
-variable "queue_policy_statements" {
-  description = "A map of IAM policy [statements](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document#statement) for custom permission usage"
-  type        = any
-  default     = {}
-}
-
-################################################################################
-# Dead Letter Queue
-################################################################################
-
-variable "create_dlq" {
-  description = "Determines whether to create SQS dead letter queue"
-  type        = bool
-  default     = false
-}
-
-variable "dlq_content_based_deduplication" {
-  description = "Enables content-based deduplication for FIFO queues"
-  type        = bool
-  default     = null
-}
-
-variable "dlq_deduplication_scope" {
-  description = "Specifies whether message deduplication occurs at the message group or queue level"
-  type        = string
-  default     = null
-}
-
-variable "dlq_delay_seconds" {
-  description = "The time in seconds that the delivery of all messages in the queue will be delayed. An integer from 0 to 900 (15 minutes)"
-  type        = number
-  default     = null
-}
-
-variable "dlq_kms_data_key_reuse_period_seconds" {
-  description = "The length of time, in seconds, for which Amazon SQS can reuse a data key to encrypt or decrypt messages before calling AWS KMS again. An integer representing seconds, between 60 seconds (1 minute) and 86,400 seconds (24 hours)"
-  type        = number
-  default     = null
-}
-
-variable "dlq_kms_master_key_id" {
-  description = "The ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK"
-  type        = string
-  default     = null
-}
-
-variable "dlq_message_retention_seconds" {
-  description = "The number of seconds Amazon SQS retains a message. Integer representing seconds, from 60 (1 minute) to 1209600 (14 days)"
-  type        = number
-  default     = null
-}
-
-variable "dlq_name" {
-  description = "This is the human-readable name of the queue. If omitted, Terraform will assign a random name"
-  type        = string
-  default     = null
-}
-
-variable "dlq_receive_wait_time_seconds" {
-  description = "The time for which a ReceiveMessage call will wait for a message to arrive (long polling) before returning. An integer from 0 to 20 (seconds)"
-  type        = number
-  default     = null
-}
-
-variable "dlq_redrive_allow_policy" {
-  description = "The JSON policy to set up the Dead Letter Queue redrive permission, see AWS docs."
-  type        = any
-  default     = {}
-}
-
-variable "dlq_sqs_managed_sse_enabled" {
-  description = "Boolean to enable server-side encryption (SSE) of message content with SQS-owned encryption keys"
-  type        = bool
-  default     = true
-}
-
-variable "dlq_visibility_timeout_seconds" {
-  description = "The visibility timeout for the queue. An integer from 0 to 43200 (12 hours)"
-  type        = number
-  default     = null
-}
-
-variable "dlq_tags" {
-  description = "A mapping of additional tags to assign to the dead letter queue"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Dead Letter Queue Policy
-################################################################################
-
-variable "create_dlq_queue_policy" {
-  description = "Whether to create SQS queue policy"
-  type        = bool
-  default     = false
-}
-
-variable "source_dlq_queue_policy_documents" {
-  description = "List of IAM policy documents that are merged together into the exported document. Statements must have unique `sid`s"
-  type        = list(string)
-  default     = []
-}
-
-variable "override_dlq_queue_policy_documents" {
-  description = "List of IAM policy documents that are merged together into the exported document. In merging, statements with non-blank `sid`s will override statements with the same `sid`"
-  type        = list(string)
-  default     = []
-}
-
-variable "dlq_queue_policy_statements" {
-  description = "A map of IAM policy [statements](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document#statement) for custom permission usage"
-  type        = any
-  default     = {}
 }
